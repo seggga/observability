@@ -1,6 +1,6 @@
 package cropper
 
-import "github.com/gofrs/uuid"
+import "github.com/google/uuid"
 
 type Link struct {
 	Short       string    `json:"short"`
