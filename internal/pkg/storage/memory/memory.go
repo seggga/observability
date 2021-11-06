@@ -35,7 +35,9 @@ func New() *mem {
 	}
 }
 
+// CreateLink adds data to the map
 func (m *mem) CreateLink(link *model.Link) error {
+	m.storage[link.Short] = *link
 	return nil
 }
 
