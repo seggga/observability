@@ -16,3 +16,11 @@ content-type: application/json
     "long": "https://play.golang.org/",
     "description": "just for fun"
 }
+
+### 05 delete short-to-long pair (after this step no data should be sent on ### 03)
+POST http://localhost:8080/delete-link HTTP/1.1
+content-type: application/json
+
+{
+    "short": "play"
+}
