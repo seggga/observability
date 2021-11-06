@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -13,7 +14,7 @@ func newLink(s service) http.HandlerFunc {
 		// obtain request body
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			// err = fmt.Errorf("unable to parse request body %w", err)
+			err = fmt.Errorf("unable to parse request body %w", err)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -24,15 +25,16 @@ func newLink(s service) http.HandlerFunc {
 		link := new(cropper.Link)
 		err = json.Unmarshal(body, link)
 		if err != nil {
-			// err = fmt.Errorf("unable to unmarshal JSON %w", err)
+			err = fmt.Errorf("unable to unmarshal JSON %w", err)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
 		}
 
+		// call service level
 		err = s.NewLink(link)
 		if err != nil {
-			// err = fmt.Errorf("unable to create link pair: %w", err)
+			err = fmt.Errorf("unable to create link pair: %w", err)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
