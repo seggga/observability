@@ -6,8 +6,15 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/seggga/observability/pkg/cropper"
 )
+
+func home() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "welcome to cropper!")
+	}
+}
 
 func newLink(s service) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
@@ -44,5 +51,24 @@ func newLink(s service) http.HandlerFunc {
 		// output data
 		rw.Header().Set("Application", "Cropper")
 		rw.WriteHeader(http.StatusOK)
+	}
+}
+
+func redirect(s service) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		// define shortID from users query
+		params := mux.Vars(r)
+		short := params["short"]
+		// defint corresponding long URL from database
+		long, err := s.Resolve(short)
+		if err != nil {
+			// slogger.Debugf("resolving error %w", err)
+			// JSONError(rw, err, http.StatusBadRequest)
+			return
+		}
+		// slogger.Debugf("successful redirect %s -> %s", shortID, longURL)
+
+		// implement redirect
+		http.Redirect(rw, r, long, http.StatusPermanentRedirect)
 	}
 }
