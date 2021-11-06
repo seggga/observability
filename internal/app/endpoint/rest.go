@@ -10,8 +10,5 @@ func RegisterPublicHTTP(s service) *mux.Router {
 	r.HandleFunc("/{short}", redirect(s)).Methods("GET")
 	r.HandleFunc("/new-link", newLink(s)).Methods("POST")
 
-	// r.HandleFunc("/new-user/{queue}", putToQueue(queueSvc)).Methods(http.MethodPut)
-	// r.HandleFunc("/{queue}", getFromQueue(queueSvc)).Methods(http.MethodGet)
-
 	return r
 }
