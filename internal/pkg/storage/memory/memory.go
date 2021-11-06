@@ -37,13 +37,19 @@ func New() *mem {
 
 // CreateLink adds data to the map
 func (m *mem) CreateLink(link *model.Link) error {
+	m.mutex.Lock()
 	m.storage[link.Short] = *link
+	m.mutex.Unlock()
+
 	return nil
 }
 
 // GetLink retrieves specified link from the storage
 func (m *mem) GetLink(short string) (*model.Link, error) {
+	m.mutex.RLock()
 	link := m.storage[short]
+	m.mutex.RUnlock()
+
 	// check for valid data
 	if link.Long == "" {
 		err := fmt.Errorf("long link is empty")
@@ -58,7 +64,9 @@ func (m *mem) Close() {
 
 // IsSet checks if an element exist in the storage
 func (m *mem) IsSet(short string) bool {
+	m.mutex.RLock()
 	_, ok := m.storage[short]
+	m.mutex.RUnlock()
 	if ok {
 		return true
 	}
