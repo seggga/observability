@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/google/uuid"
 	"github.com/seggga/observability/internal/pkg/model"
 	"github.com/seggga/observability/pkg/cropper"
 )
@@ -76,4 +77,19 @@ func (s *Service) NewLink(link *cropper.Link) error {
 		return err
 	}
 	return nil
+}
+
+// DeleteLink deletes link from the storage
+func (s *Service) DeleteLink(short string, ID *uuid.UUID) error {
+	// check link existance
+	if !s.repo.IsSet(short) {
+		err := fmt.Errorf("short URL you wish to delete (%s) has not been found in the storage. Nothing to delete", short)
+		// slogger.Debug(err)
+		// JSONError(rw, err, http.StatusBadRequest)
+		return err
+	}
+
+	// call link delete
+	err := s.repo.DeleteLink(short)
+	return err
 }

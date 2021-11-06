@@ -35,7 +35,7 @@ func New() *mem {
 	}
 }
 
-// CreateLink adds data to the map
+// CreateLink adds new link data to the map
 func (m *mem) CreateLink(link *model.Link) error {
 	m.mutex.Lock()
 	m.storage[link.Short] = *link
@@ -67,8 +67,15 @@ func (m *mem) IsSet(short string) bool {
 	m.mutex.RLock()
 	_, ok := m.storage[short]
 	m.mutex.RUnlock()
-	if ok {
-		return true
-	}
-	return false
+
+	return ok
+}
+
+// DeleteLink deletes link data from the map
+func (m *mem) DeleteLink(short string) error {
+	m.mutex.Lock()
+	delete(m.storage, short)
+	m.mutex.Unlock()
+
+	return nil
 }
