@@ -18,11 +18,12 @@ func home() http.HandlerFunc {
 }
 
 func newLink(s service) http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// obtain request body
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			err = fmt.Errorf("unable to parse request body %w", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -34,6 +35,7 @@ func newLink(s service) http.HandlerFunc {
 		err = json.Unmarshal(body, link)
 		if err != nil {
 			err = fmt.Errorf("unable to unmarshal JSON %w", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -43,6 +45,7 @@ func newLink(s service) http.HandlerFunc {
 		err = s.NewLink(link)
 		if err != nil {
 			err = fmt.Errorf("unable to create link pair: %w", err)
+			http.Error(w, "unable to create link pair", http.StatusInsufficientStorage)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -50,19 +53,21 @@ func newLink(s service) http.HandlerFunc {
 
 		// slogger.Infof("a new short ID added to database %+v", link)
 		// output data
-		rw.Header().Set("Application", "Cropper")
-		rw.WriteHeader(http.StatusOK)
+		w.Header().Set("Application", "Cropper")
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
 func redirect(s service) http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// define shortID from users query
 		params := mux.Vars(r)
 		short := params["short"]
 		// defint corresponding long URL from database
 		long, err := s.Resolve(short)
 		if err != nil {
+			err = fmt.Errorf("cannot obtain ling URI: %w", err)
+			http.Error(w, "cannot obtain ling URI", http.StatusInsufficientStorage)
 			// slogger.Debugf("resolving error %w", err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -70,16 +75,17 @@ func redirect(s service) http.HandlerFunc {
 		// slogger.Debugf("successful redirect %s -> %s", shortID, longURL)
 
 		// implement redirect
-		http.Redirect(rw, r, long, http.StatusPermanentRedirect)
+		http.Redirect(w, r, long, http.StatusPermanentRedirect)
 	}
 }
 
 func deleteLink(s service) http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// obtain request body
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			err = fmt.Errorf("unable to parse request body %w", err)
+			http.Error(w, "unable to parse request body", http.StatusBadRequest)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -91,6 +97,7 @@ func deleteLink(s service) http.HandlerFunc {
 		err = json.Unmarshal(body, link)
 		if err != nil {
 			err = fmt.Errorf("unable to unmarshal JSON %w", err)
+			http.Error(w, "unable to unmarshal JSON", http.StatusBadRequest)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -98,6 +105,7 @@ func deleteLink(s service) http.HandlerFunc {
 
 		if link.Short == "" {
 			err = fmt.Errorf("the short link is empty, nothing to delete")
+			http.Error(w, "the short link is empty, nothing to delete", http.StatusBadRequest)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -110,6 +118,7 @@ func deleteLink(s service) http.HandlerFunc {
 		err = s.DeleteLink(link.Short, &userID)
 		if err != nil {
 			err = fmt.Errorf("unable to create link pair: %w", err)
+			http.Error(w, "unable to create link pair", http.StatusInsufficientStorage)
 			// slogger.Debug(err)
 			// JSONError(rw, err, http.StatusBadRequest)
 			return
@@ -117,7 +126,7 @@ func deleteLink(s service) http.HandlerFunc {
 
 		// slogger.Infof("a new short ID added to database %+v", link)
 		// output data
-		rw.Header().Set("Application", "Cropper")
-		rw.WriteHeader(http.StatusOK)
+		w.Header().Set("Application", "Cropper")
+		w.WriteHeader(http.StatusOK)
 	}
 }
