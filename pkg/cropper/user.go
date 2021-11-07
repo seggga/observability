@@ -3,6 +3,6 @@ package cropper
 import "github.com/google/uuid"
 
 type User struct {
-	ID   uuid.UUID `json:"ID"`
-	Name string    `json:"Name"`
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
