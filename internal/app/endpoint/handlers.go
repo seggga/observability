@@ -16,9 +16,48 @@ func home() http.HandlerFunc {
 		fmt.Fprint(w, "welcome to cropper!")
 	}
 }
+func redirect(s service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// define shortID from users query
+		params := mux.Vars(r)
+		short := params["short"]
+		// defint corresponding long URL from database
+		long, err := s.Resolve(short)
+		if err != nil {
+			err = fmt.Errorf("cannot obtain ling URI: %w", err)
+			http.Error(w, "cannot obtain ling URI", http.StatusInsufficientStorage)
+			// slogger.Debugf("resolving error %w", err)
+			// JSONError(rw, err, http.StatusBadRequest)
+			return
+		}
+		// slogger.Debugf("successful redirect %s -> %s", shortID, longURL)
+
+		// implement redirect
+		http.Redirect(w, r, long, http.StatusPermanentRedirect)
+	}
+}
+
+// authMiddleware checks user's authorization
+func authMiddleware(h http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			// check authorization
+			_, _, ok := r.BasicAuth()
+			if !ok {
+				// err = fmt.Errorf("unauthorized access")
+				http.Error(w, "unauthorized access", http.StatusUnauthorized)
+				// slogger.Debug(err)
+				// JSONError(rw, err, http.StatusBadRequest)
+				return
+			}
+			h.ServeHTTP(w, r)
+		},
+	)
+}
 
 func newLink(s service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		// obtain request body
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -55,27 +94,6 @@ func newLink(s service) http.HandlerFunc {
 		// output data
 		w.Header().Set("Application", "Cropper")
 		w.WriteHeader(http.StatusOK)
-	}
-}
-
-func redirect(s service) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// define shortID from users query
-		params := mux.Vars(r)
-		short := params["short"]
-		// defint corresponding long URL from database
-		long, err := s.Resolve(short)
-		if err != nil {
-			err = fmt.Errorf("cannot obtain ling URI: %w", err)
-			http.Error(w, "cannot obtain ling URI", http.StatusInsufficientStorage)
-			// slogger.Debugf("resolving error %w", err)
-			// JSONError(rw, err, http.StatusBadRequest)
-			return
-		}
-		// slogger.Debugf("successful redirect %s -> %s", shortID, longURL)
-
-		// implement redirect
-		http.Redirect(w, r, long, http.StatusPermanentRedirect)
 	}
 }
 
