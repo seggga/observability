@@ -1,0 +1,26 @@
+### 01 go to service homepage
+GET http://localhost:8080/
+
+### 02 check redirect by short url (predefined asdf -> google.com)
+GET http://localhost:8080/asdf
+
+### 03 check rediredct by short URL (should return error until ### 04 has been called)
+GET http://localhost:8080/play
+
+### 04 create short-to-long pair
+POST http://localhost:8080/new-link HTTP/1.1
+content-type: application/json
+
+{
+    "short": "play",
+    "long": "https://play.golang.org/",
+    "description": "just for fun"
+}
+
+### 05 delete short-to-long pair (after this step no data should be sent on ### 03)
+POST http://localhost:8080/delete-link HTTP/1.1
+content-type: application/json
+
+{
+    "short": "play"
+}
