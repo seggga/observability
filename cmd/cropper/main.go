@@ -18,15 +18,8 @@ import (
 func main() {
 	log.Print("Starting the app")
 
-	// port := flag.String("port", "8000", "Port")
-	// storageName := flag.String("storage", "storage.json", "data storage")
-	// shutdownTimeout := flag.Int64("shutdown_timeout", 3, "shutdown timeout")
-	// flag.Parse()
-
-	//	  repo := repomem.New()
-	//    repo := repopg.New()
 	repo := storage.New()
-	svc := service.New(repo)
+	svc := service.New(repo, "debug")
 
 	app := http.Server{
 		Addr:    net.JoinHostPort("localhost", "8080"),
@@ -41,11 +34,11 @@ func main() {
 	interrupt := make(chan os.Signal, 3)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
-	log.Print("Started app")
+	log.Print("Application started on localhost:8080")
 
 	sig := <-interrupt
 
-	log.Printf("Sig: %v, stopping app", sig)
+	log.Printf("Got signal: %v, stopping app", sig)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
