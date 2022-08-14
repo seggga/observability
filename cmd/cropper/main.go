@@ -45,4 +45,5 @@ func main() {
 	if err := app.Shutdown(ctx); err != nil {
 		log.Printf("shutdown err: %v", err)
 	}
+	repo.Close()
 }
